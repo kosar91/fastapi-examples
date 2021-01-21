@@ -9,7 +9,7 @@ flask_app = Flask(__name__)
 
 @flask_app.route("/flask")
 def flask_main():
-    return f"Hello, world from Flask!"
+    return "Hello, world from Flask!"
 
 
 @app.get("/fastapi", response_class=PlainTextResponse)
