@@ -35,7 +35,8 @@ async def create_post(request):
 @routes.get('/posts/')
 async def get_posts(request):
     pg_conn = request.app['pg_conn']
-    posts_data = await pg_conn.fetch('select id, title, content from posts')
+    async with pg_conn.acquire() as connection:
+        posts_data = await connection.fetch('select id, title, content from posts')
     posts_data = [dict(item) for item in posts_data]
     return json_response(posts_data)
 
