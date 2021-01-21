@@ -1,6 +1,6 @@
 import typing
 from fastapi import FastAPI, Response, Header, Depends, File, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, HTMLResponse, FileResponse
 from pydantic import BaseModel
 
 from models import Post
@@ -19,6 +19,26 @@ async def xml_example():
     </posts>
     """
     return Response(content=data, media_type="application/xml")
+
+
+@app.get("/html_example/", tags=['Examples'], response_class=HTMLResponse)
+async def html_example():
+    html_content = """
+    <html>
+        <head>
+            <title>Some HTML in here</title>
+        </head>
+        <body>
+            <h1>Look ma! HTML!</h1>
+        </body>
+    </html>
+    """
+    return html_content
+
+
+@app.get("/file_example/", tags=['Examples'], response_class=FileResponse)
+async def file_example():
+    return FileResponse('README.md', filename='README.md')
 
 
 @app.get("/posts/", tags=['Examples'], response_model=typing.List[Post])
