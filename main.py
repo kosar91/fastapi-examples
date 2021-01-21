@@ -1,69 +1,34 @@
+import asyncpg
 import typing
-from fastapi import FastAPI, Response, Header, Depends, File, UploadFile
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-
-from models import Post
+from fastapi import FastAPI, Request
+import models
 
 app = FastAPI()
 
 
-@app.get("/xml_example/", tags=['Examples'])
-async def xml_example():
-    data = """<?xml version="1.0"?>
-    <posts>
-        <Post id="1">
-            <title>Example 1.</title>
-            <content>Content 1.</title>
-        </Post>
-    </posts>
-    """
-    return Response(content=data, media_type="application/xml")
+@app.on_event("startup")
+async def init_db_connection():
+    #  Yes it is hardcode ;-)
+    app.pg_conn = await asyncpg.connect(dsn='postgresql://postgres:postgres@0.0.0.0:5432/postgres')
 
 
-@app.get("/posts/", tags=['Examples'], response_model=typing.List[Post])
-async def query_example(search: str = None, skip: int = None, limit: int = None, user_agent: str = Header(None)):
-    # Do some work...
-    return [
-        {
-            'id': 1,
-            'title': 'My title 1',
-            'content': 'My content 1',
-        },
-    ]
+@app.on_event("shutdown")
+async def close_db_connection():
+    await app.pg_conn.close()
 
 
-class CommonQueryArgs(BaseModel):
-    search: str = None
-    skip: int = None
-    limit: int = None
+@app.post("/posts/", tags=['Examples'], response_model=models.Post)
+async def create_post(request: Request, post: models.PostCreate):
+    pg_conn = request.app.pg_conn
+    post_data = await pg_conn.fetchrow(
+        'insert into posts (title, content) values ($1, $2) RETURNING id, title, content',
+        post.title, post.content
+    )
+    return post_data
 
 
-@app.get("/dependency_example/", tags=['Examples'], response_model=typing.List[Post])
-async def dependency_example(query_args: CommonQueryArgs = Depends(CommonQueryArgs), user_agent: str = Header(None)):
-    # Do some work...
-    return [
-        {
-            'id': 1,
-            'title': 'My title 1',
-            'content': 'My content 1',
-        },
-    ]
-
-
-MAX_FILE_SIZE = 1024 * 1024 * 25
-
-
-@app.post("/file_upload_example/", tags=['Examples'])
-async def file_upload_example(file1: bytes = File(None, max_length=MAX_FILE_SIZE), file2: UploadFile = File(None)):
-    # Do some work...
-    return "File uploaded successfully."
-
-
-@app.get("/streaming_example", tags=['Examples'])
-async def streaming_example():
-    async def fake_video_streamer():
-        for i in range(10):
-            yield b"some fake video bytes"
-
-    return StreamingResponse(fake_video_streamer())
+@app.get("/posts/", tags=['Examples'], response_model=typing.List[models.Post])
+async def get_posts(request: Request):
+    pg_conn = request.app.pg_conn
+    posts_data = await pg_conn.fetch('select id, title, content from posts')
+    return posts_data
