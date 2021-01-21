@@ -1,70 +1,20 @@
-import typing
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from starlette import status
+from fastapi import FastAPI
+from fastapi.middleware.wsgi import WSGIMiddleware
+from fastapi.responses import PlainTextResponse
+from flask import Flask
 
 app = FastAPI()
+flask_app = Flask(__name__)
 
 
-class PostCreate(BaseModel):
-    title: str
-    content: str
+@flask_app.route("/flask")
+def flask_main():
+    return f"Hello, world from Flask!"
 
 
-class PostUpdate(BaseModel):
-    title: typing.Optional[str]
-    content: typing.Optional[str]
+@app.get("/fastapi", response_class=PlainTextResponse)
+def fastapi_main():
+    return "Hello, world from Fastapi!"
 
 
-class Post(BaseModel):
-    id: int
-    title: str
-    content: str
-
-
-posts = {
-    1: {
-        'id': 1,
-        'title': 'My title 1',
-        'content': 'My content 1',
-    },
-    2: {
-        'id': 2,
-        'title': 'My title 2',
-        'content': 'My content 2',
-    }
-}
-
-
-@app.post("/posts/", response_model=Post, status_code=status.HTTP_201_CREATED)
-async def create_post(post: PostCreate):
-    post_id = max(posts.keys()) + 1
-    posts[post_id] = post.dict()
-    posts[post_id]['id'] = post_id
-    return posts[post_id]
-
-
-@app.put("/posts/{post_id}/", response_model=Post)
-async def update_post(post_id: int, post: PostUpdate):
-    if post_id not in posts:
-        raise HTTPException(status_code=404, detail="Item not found")
-
-    posts[post_id].update(post.dict(exclude_unset=True))
-    return posts[post_id]
-
-
-@app.get("/posts/", response_model=typing.List[Post])
-async def get_posts():
-    return list(posts.values())
-
-
-@app.get("/posts/{post_id}/", response_model=Post)
-async def get_post(post_id: int):
-    if post_id not in posts:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return posts[post_id]
-
-
-@app.delete("/posts/{post_id}/", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(post_id: int):
-    return posts.pop(post_id)
+app.mount("/", WSGIMiddleware(flask_app))
