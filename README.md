@@ -18,7 +18,7 @@ uvicorn main:app
 Запускалось приложений с одним обработчиком для чистоты эксперимента:
 
 ```bash
-gunicorn main:app --log-level warning -b 0.0.0.0:8001 --workers 1 -k uvicorn.workers.UvicornWorker
+gunicorn main:app --log-level warning -b 0.0.0.0:8001 --workers 8 -k uvicorn.workers.UvicornWorker
 ```
 
 Тестировалось с помощью WRK:
