@@ -21,14 +21,21 @@ uvicorn main:app
 uvicorn main:app --workers 1
 ```
 
-Тестировалось с помощью WRK:
+Тестировалось с помощью Yandex tank:
 
 ```bash
-wrk -t30 -c30 -d30s http://localhost:8000/posts/
+docker run \
+    -v $(pwd):/var/loadtest \
+    -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
+    --net host \
+    -it direvius/yandex-tank \
+    -c tank-config.yaml
 ```
 
 Результаты тестов:
 
-|Попытка|Средний RPS|Средний latency|
+|Попытка|Max RPS|99 перцентиль latency|
 |---|---|---|
-|1|1222.49|65.86ms|
+|1|1740|11ms|
+|2|1730|16ms|
+|3|1690|11ms|
