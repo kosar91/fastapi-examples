@@ -45,8 +45,12 @@ async def get_posts(request):
     return json_response({'message': "Hello world"})
 
 
-if __name__ == '__main__':
+async def create_app():
     app = Application()
     app.on_startup.append(init_db_connection)
     app.add_routes(routes)
-    web.run_app(app, port=8000, host='0.0.0.0')
+    return app
+
+
+if __name__ == '__main__':
+    web.run_app(create_app(), port=8000, host='0.0.0.0')
