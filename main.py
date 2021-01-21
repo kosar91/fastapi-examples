@@ -1,6 +1,7 @@
 import asyncpg
 import typing
 from fastapi import FastAPI, Request
+from fastapi.responses import UJSONResponse
 import models
 
 app = FastAPI()
@@ -24,16 +25,17 @@ async def create_post(request: Request, post: models.PostCreate):
         'insert into posts (title, content) values ($1, $2) RETURNING id, title, content',
         post.title, post.content
     )
-    return post_data
+    return UJSONResponse(post_data)
 
 
-@app.get("/posts/", tags=['Examples'], response_model=typing.List[models.Post])
+@app.get("/posts/")
 async def get_posts(request: Request):
     pg_conn = request.app.pg_conn
     posts_data = await pg_conn.fetch('select id, title, content from posts')
-    return posts_data
+    posts_data = [dict(item) for item in posts_data]
+    return UJSONResponse(posts_data)
 
 
-@app.get("/hello_world/", tags=['Examples'], response_model=dict)
+@app.get("/hello_world/")
 async def hello_world():
-    return {'message': 'Hello world'}
+    return UJSONResponse({'message': 'Hello world'})
