@@ -21,7 +21,7 @@ uvicorn main:app
 uvicorn main:app --workers 1
 ```
 
-Тестировалось с помощью Yandex tank:
+Тестировалось с помощью WRK:
 
 ```bash
 docker run \

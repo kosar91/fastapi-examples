@@ -1,6 +1,11 @@
+from functools import partial
+
 import asyncpg
+import ujson
 from aiohttp import web
 from aiohttp.web_app import Application
+
+json_response = partial(web.json_response, dumps=ujson.dumps)
 
 
 async def init_db_connection(application):
@@ -24,7 +29,7 @@ async def create_post(request):
         'insert into posts (title, content) values ($1, $2) RETURNING id, title, content',
         input_data['title'], input_data['content']
     )
-    return web.json_response(dict(post_data))
+    return json_response(dict(post_data))
 
 
 @routes.get('/posts/')
@@ -32,12 +37,12 @@ async def get_posts(request):
     pg_conn = request.app['pg_conn']
     posts_data = await pg_conn.fetch('select id, title, content from posts')
     posts_data = [dict(item) for item in posts_data]
-    return web.json_response(posts_data)
+    return json_response(posts_data)
 
 
 @routes.get('/hello_world/')
 async def get_posts(request):
-    return web.json_response({'message': "Hello world"})
+    return json_response({'message': "Hello world"})
 
 
 if __name__ == '__main__':
