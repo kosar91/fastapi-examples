@@ -1,70 +1,68 @@
 import typing
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Response, Header, Depends, File, UploadFile
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from starlette import status
+
+from models import Post
 
 app = FastAPI()
 
 
-class PostCreate(BaseModel):
-    title: str
-    content: str
+@app.get("/xml_example/", tags=['Examples'])
+async def xml_example():
+    data = """<?xml version="1.0"?>
+    <posts>
+        <Post id="1">
+            <title>Example 1.</title>
+            <content>Content 1.</title>
+        </Post>
+    </posts>
+    """
+    return Response(content=data, media_type="application/xml")
 
 
-class PostUpdate(BaseModel):
-    title: typing.Optional[str]
-    content: typing.Optional[str]
+@app.get("/query_example/", tags=['Examples'], response_model=typing.List[Post])
+async def query_example(skip: int = None, limit: int = None, user_agent: str = Header(None)):
+    # Do some work...
+    return [
+        {
+            'id': 1,
+            'title': 'My title 1',
+            'content': 'My content 1',
+        },
+    ]
 
 
-class Post(BaseModel):
-    id: int
-    title: str
-    content: str
+class CommonQueryArgs(BaseModel):
+    search: int = None
+    skip: int = None
+    limit: int = None
 
 
-posts = {
-    1: {
-        'id': 1,
-        'title': 'My title 1',
-        'content': 'My content 1',
-    },
-    2: {
-        'id': 2,
-        'title': 'My title 2',
-        'content': 'My content 2',
-    }
-}
+@app.get("/dependency_example/", tags=['Examples'], response_model=typing.List[Post])
+async def dependency_example(query_args: CommonQueryArgs = Depends(CommonQueryArgs), user_agent: str = Header(None)):
+    return [
+        {
+            'id': 1,
+            'title': 'My title 1',
+            'content': 'My content 1',
+        },
+    ]
 
 
-@app.post("/posts/", response_model=Post)
-async def create_post(post: PostCreate):
-    post_id = max(posts.keys()) + 1
-    posts[post_id] = post.dict()
-    posts[post_id]['id'] = post_id
-    return posts[post_id]
+MAX_FILE_SIZE = 1024 * 1024 * 25
 
 
-@app.put("/posts/{post_id}/", response_model=Post)
-async def update_post(post_id: int, post: PostUpdate):
-    if post_id not in posts:
-        raise HTTPException(status_code=404, detail="Item not found")
-
-    posts[post_id].update(post.dict(exclude_unset=True))
-    return posts[post_id]
+@app.post("/file_upload_example/", tags=['Examples'])
+async def file_upload_example(file1: bytes = File(None, max_length=MAX_FILE_SIZE), file2: UploadFile = File(None)):
+    # Do some work...
+    return "File uploaded successfully."
 
 
-@app.get("/posts/", response_model=typing.List[Post])
-async def get_posts():
-    return list(posts.values())
+@app.get("/streaming_example", tags=['Examples'])
+async def streaming_example():
+    async def fake_video_streamer():
+        for i in range(10):
+            yield b"some fake video bytes"
 
-
-@app.get("/posts/{post_id}/", response_model=Post)
-async def get_post(post_id: int):
-    if post_id not in posts:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return posts[post_id]
-
-
-@app.delete("/posts/{post_id}/", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(post_id: int):
-    return posts.pop(post_id)
+    return StreamingResponse(fake_video_streamer())

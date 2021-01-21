@@ -2,3 +2,6 @@ fastapi==0.63.0
 pydantic>=1.7.3, <2
 uvicorn>=0.13.3, <1
 starlette>=0.13.6, <2
+
+# Optional package
+python-multipart>=0.0.5, <1
