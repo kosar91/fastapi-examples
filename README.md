@@ -18,7 +18,7 @@ uvicorn main:app
 Запускалось приложений с одним обработчиком для чистоты эксперимента:
 
 ```bash
-uvicorn main:app --workers 1
+gunicorn main:create_app --workers 1 -b 0.0.0.0:8000 --worker-class aiohttp.GunicornUVLoopWebWorker
 ```
 
 Тестировалось с помощью WRK:
