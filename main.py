@@ -25,13 +25,14 @@ async def create_post(request: Request, post: models.PostCreate):
         'insert into posts (title, content) values ($1, $2) RETURNING id, title, content',
         post.title, post.content
     )
-    return UJSONResponse(post_data)
+    return UJSONResponse(dict(post_data))
 
 
 @app.get("/posts/")
 async def get_posts(request: Request):
     pg_conn = request.app.pg_conn
-    posts_data = await pg_conn.fetch('select id, title, content from posts')
+    async with pg_conn.acquire() as connection:
+        posts_data = await connection.fetch('select id, title, content from posts')
     posts_data = [dict(item) for item in posts_data]
     return UJSONResponse(posts_data)
 
