@@ -36,7 +36,7 @@ posts = {
 }
 
 
-@app.post("/posts/", response_model=Post)
+@app.post("/posts/", response_model=Post, status_code=status.HTTP_201_CREATED)
 async def create_post(post: PostCreate):
     post_id = max(posts.keys()) + 1
     posts[post_id] = post.dict()
