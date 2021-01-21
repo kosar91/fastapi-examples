@@ -18,24 +18,19 @@ uvicorn main:app
 Запускалось приложений с одним обработчиком для чистоты эксперимента:
 
 ```bash
-gunicorn main:create_app --workers 1 -b 0.0.0.0:8000 --worker-class aiohttp.GunicornUVLoopWebWorker
+gunicorn main:create_app --workers 8 -b 0.0.0.0:8000 --worker-class aiohttp.GunicornUVLoopWebWorker
 ```
 
 Тестировалось с помощью WRK:
 
 ```bash
-docker run \
-    -v $(pwd):/var/loadtest \
-    -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
-    --net host \
-    -it direvius/yandex-tank \
-    -c tank-config.yaml
+wrk -t30 -c30 -d30s http://192.168.1.132:8000/posts/
 ```
 
 Результаты тестов:
 
 |Попытка|Max RPS|99 перцентиль latency|
 |---|---|---|
-|1|1740|11ms|
-|2|1730|16ms|
-|3|1690|11ms|
+|1|4009.48|19.11ms|
+|2|5294.68|5.71ms|
+|3|5302.94|5.67ms|
