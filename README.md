@@ -21,10 +21,15 @@ uvicorn main:app
 uvicorn main:app --workers 1 --log-level warning
 ```
 
-Тестировалось с помощью WRK:
+Тестировалось с помощью Yandex tank:
 
 ```bash
-wrk -t30 -c30 -d30s http://localhost:8000/posts/
+docker run \
+    -v $(pwd):/var/loadtest \
+    -v $SSH_AUTH_SOCK:/ssh-agent -e SSH_AUTH_SOCK=/ssh-agent \
+    --net host \
+    -it direvius/yandex-tank \
+    -c tank-config.yaml
 ```
 
 Результаты тестов:
@@ -32,12 +37,4 @@ wrk -t30 -c30 -d30s http://localhost:8000/posts/
 |Попытка|Средний RPS|Средний latency|
 |---|---|---|
 |1|1281.79|23.40ms|
-|2|1277.29|23.48ms|
-|3|1370.82|21.83ms|
-|4|1309.47|22.90ms|
-|5|1323.28|22.61ms|
-|6|1276.49|23.48ms|
-|7|1276.49|23.48ms|
-|8|1325.96|22.60ms|
-|9|1351.40|22.19ms|
-|10|1296.25|23.12ms|
+

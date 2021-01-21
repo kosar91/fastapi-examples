@@ -1,0 +1,11 @@
+phantom:
+  address: localhost:8000 # [Target's address]:[target's port]
+  uris:
+    - /posts
+  load_profile:
+    load_type: rps # schedule load by defining requests per second
+    schedule: line(300, 2000, 30s)
+console:
+  enabled: true # enable console output
+telegraf:
+  enabled: false # let's disable telegraf monitoring for the first time
