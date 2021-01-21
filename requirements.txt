@@ -5,3 +5,6 @@ starlette>=0.13.6, <2
 asyncpg>=0.21.0, <1
 ujson
 uvloop
+gunicorn
+cython
+httptools

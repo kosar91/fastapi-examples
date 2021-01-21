@@ -18,13 +18,13 @@ uvicorn main:app
 Запускалось приложений с одним обработчиком для чистоты эксперимента:
 
 ```bash
-uvicorn main:app --workers 1 --log-level warning
+gunicorn main:app --log-level warning -b 0.0.0.0:8001 --workers 1 -k uvicorn.workers.UvicornWorker
 ```
 
 Тестировалось с помощью WRK:
 
 ```bash
-wrk -t30 -c30 -d30s http://localhost:8000/posts/
+wrk -t30 -c30 -d30s http://localhost:8001/posts/
 ```
 
 Результаты тестов:
