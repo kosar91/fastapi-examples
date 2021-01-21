@@ -35,6 +35,11 @@ async def get_posts(request):
     return web.json_response(posts_data)
 
 
+@routes.get('/hello_world/')
+async def get_posts(request):
+    return web.json_response({'message': "Hello world"})
+
+
 if __name__ == '__main__':
     app = Application()
     app.on_startup.append(init_db_connection)
