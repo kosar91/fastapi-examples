@@ -1,34 +1,42 @@
 import asyncpg
-import typing
-from fastapi import FastAPI, Request
-import models
-
-app = FastAPI()
+from aiohttp import web
+from aiohttp.web_app import Application
 
 
-@app.on_event("startup")
-async def init_db_connection():
+async def init_db_connection(application):
     #  Yes it is hardcode ;-)
-    app.pg_conn = await asyncpg.create_pool(dsn='postgresql://postgres:postgres@0.0.0.0:5432/postgres')
+    application['pg_conn'] = await asyncpg.create_pool(dsn='postgresql://postgres:postgres@0.0.0.0:5432/postgres')
+
+    async def on_shutdown(app_to_close: Application):
+        await app_to_close['pg_conn'].close()
+
+    application.on_shutdown.append(on_shutdown)
 
 
-@app.on_event("shutdown")
-async def close_db_connection():
-    await app.pg_conn.close()
+routes = web.RouteTableDef()
 
 
-@app.post("/posts/", tags=['Examples'], response_model=models.Post)
-async def create_post(request: Request, post: models.PostCreate):
-    pg_conn = request.app.pg_conn
+@routes.post('/posts/')
+async def create_post(request):
+    pg_conn = request.app['pg_conn']
+    input_data = await request.json()
     post_data = await pg_conn.fetchrow(
         'insert into posts (title, content) values ($1, $2) RETURNING id, title, content',
-        post.title, post.content
+        input_data['title'], input_data['content']
     )
-    return post_data
+    return web.json_response(dict(post_data))
 
 
-@app.get("/posts/", tags=['Examples'], response_model=typing.List[models.Post])
-async def get_posts(request: Request):
-    pg_conn = request.app.pg_conn
+@routes.get('/posts/')
+async def get_posts(request):
+    pg_conn = request.app['pg_conn']
     posts_data = await pg_conn.fetch('select id, title, content from posts')
-    return posts_data
+    posts_data = [dict(item) for item in posts_data]
+    return web.json_response(posts_data)
+
+
+if __name__ == '__main__':
+    app = Application()
+    app.on_startup.append(init_db_connection)
+    app.add_routes(routes)
+    web.run_app(app, port=8000, host='0.0.0.0')
