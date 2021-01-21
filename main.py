@@ -1,5 +1,5 @@
 import typing
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from starlette import status
 
