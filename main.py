@@ -9,7 +9,7 @@ app = FastAPI()
 @app.on_event("startup")
 async def init_db_connection():
     #  Yes it is hardcode ;-)
-    app.pg_conn = await asyncpg.connect(dsn='postgresql://postgres:postgres@0.0.0.0:5432/postgres')
+    app.pg_conn = await asyncpg.create_pool(dsn='postgresql://postgres:postgres@0.0.0.0:5432/postgres')
 
 
 @app.on_event("shutdown")
