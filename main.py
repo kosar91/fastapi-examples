@@ -21,8 +21,8 @@ async def xml_example():
     return Response(content=data, media_type="application/xml")
 
 
-@app.get("/query_example/", tags=['Examples'], response_model=typing.List[Post])
-async def query_example(skip: int = None, limit: int = None, user_agent: str = Header(None)):
+@app.get("/posts/", tags=['Examples'], response_model=typing.List[Post])
+async def query_example(search: str = None, skip: int = None, limit: int = None, user_agent: str = Header(None)):
     # Do some work...
     return [
         {
@@ -34,13 +34,14 @@ async def query_example(skip: int = None, limit: int = None, user_agent: str = H
 
 
 class CommonQueryArgs(BaseModel):
-    search: int = None
+    search: str = None
     skip: int = None
     limit: int = None
 
 
 @app.get("/dependency_example/", tags=['Examples'], response_model=typing.List[Post])
 async def dependency_example(query_args: CommonQueryArgs = Depends(CommonQueryArgs), user_agent: str = Header(None)):
+    # Do some work...
     return [
         {
             'id': 1,
