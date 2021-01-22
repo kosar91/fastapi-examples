@@ -24,7 +24,7 @@ gunicorn main:app --log-level warning -b 0.0.0.0:8001 --workers 8 -k uvicorn.wor
 Тестировалось с помощью WRK:
 
 ```bash
-wrk -t30 -c30 -d30s http://localhost:8001/posts/
+wrk -t30 -c30 -d30s http://192.168.1.132:8001/posts/
 ```
 
 Результаты тестов:
